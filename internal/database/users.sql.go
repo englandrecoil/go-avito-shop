@@ -13,15 +13,16 @@ import (
 )
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO users(id, created_at, updated_at, username, hashed_password)
+INSERT INTO users(id, created_at, updated_at, username, hashed_password, balance)
 VALUES (
     gen_random_uuid(),
     NOW(),
     NOW(),
     $1,
-    $2
+    $2,
+    1000
 )
-RETURNING id, created_at, updated_at, username
+RETURNING id, created_at, updated_at, username, balance
 `
 
 type CreateUserParams struct {
@@ -34,6 +35,7 @@ type CreateUserRow struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	Username  string
+	Balance   int32
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error) {
@@ -44,6 +46,35 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateU
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Username,
+		&i.Balance,
 	)
 	return i, err
+}
+
+const getUserByUsername = `-- name: GetUserByUsername :one
+SELECT id, created_at, updated_at, username, hashed_password, balance FROM users
+WHERE username = $1
+`
+
+func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUserByUsername, username)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Username,
+		&i.HashedPassword,
+		&i.Balance,
+	)
+	return i, err
+}
+
+const reset = `-- name: Reset :exec
+DELETE FROM users
+`
+
+func (q *Queries) Reset(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, reset)
+	return err
 }

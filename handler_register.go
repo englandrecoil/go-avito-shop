@@ -11,16 +11,17 @@ import (
 )
 
 func (cfg *apiConfig) handlerRegister(w http.ResponseWriter, r *http.Request) {
-	type registerRequest struct {
+	type registerRequestParams struct {
 		Username string `json:"username"`
 		Passowrd string `json:"password"`
 	}
-	type registerResponse struct {
+	type registerResponseParams struct {
 		Username  string    `json:"username"`
 		CreatedAt time.Time `json:"created_at"`
 		UpdatedAt time.Time `json:"updated_at"`
+		Balance   int       `json:"balance"`
 	}
-	reqUser := registerRequest{}
+	reqUser := registerRequestParams{}
 
 	// get user's request params
 	decoder := json.NewDecoder(r.Body)
@@ -53,9 +54,10 @@ func (cfg *apiConfig) handlerRegister(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// send response
-	respondWithJSON(w, http.StatusCreated, registerResponse{
+	respondWithJSON(w, http.StatusCreated, registerResponseParams{
 		Username:  dbUser.Username,
 		CreatedAt: dbUser.CreatedAt,
 		UpdatedAt: dbUser.UpdatedAt,
+		Balance:   int(dbUser.Balance),
 	})
 }

@@ -12,12 +12,18 @@ import (
 )
 
 type apiConfig struct {
-	db *database.Queries
+	db     *database.Queries
+	secret string
 }
 
 func main() {
 	godotenv.Load(".env")
 	const port = "8080"
+
+	secret := os.Getenv("SECRET")
+	if secret == "" {
+		log.Fatal("SECRET must be set")
+	}
 
 	dbURL := os.Getenv("DB_URL")
 	if dbURL == "" {
@@ -31,13 +37,16 @@ func main() {
 	dbQueries := database.New(dbConn)
 
 	apiCfg := apiConfig{
-		db: dbQueries,
+		db:     dbQueries,
+		secret: secret,
 	}
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/healthz", handlerReadiness)
+	mux.HandleFunc("POST /api/reset", apiCfg.handlerReset)
 
 	mux.HandleFunc("POST /api/reg", apiCfg.handlerRegister)
+	mux.HandleFunc("POST /api/auth", apiCfg.handlerAuth)
 
 	server := &http.Server{
 		Addr:    ":" + port,
