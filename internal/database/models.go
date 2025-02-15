@@ -24,3 +24,10 @@ type User struct {
 	HashedPassword string
 	Balance        int32
 }
+
+type UsersItem struct {
+	ID       uuid.UUID
+	UserID   uuid.UUID
+	ItemID   uuid.UUID
+	Quantity int32
+}

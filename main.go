@@ -47,6 +47,7 @@ func main() {
 
 	mux.HandleFunc("POST /api/reg", apiCfg.handlerRegister)
 	mux.HandleFunc("POST /api/auth", apiCfg.handlerAuth)
+	mux.HandleFunc("GET /api/buy/{item}", apiCfg.handlerBuyItem)
 
 	server := &http.Server{
 		Addr:    ":" + port,
