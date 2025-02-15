@@ -1,0 +1,4 @@
+.env
+docker-compose.yaml
+Dockerfile
+.go-avito-shop
