@@ -9,10 +9,11 @@ import (
 	"github.com/englandrecoil/go-avito-shop/internal/auth"
 )
 
+type authResponseParams struct {
+	Token string `json:"token"`
+}
+
 func (cfg *apiConfig) handlerAuth(w http.ResponseWriter, r *http.Request) {
-	type authResponseParams struct {
-		Token string `json:"token"`
-	}
 
 	authUser := CredentialsRequestParams{}
 

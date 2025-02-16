@@ -21,6 +21,7 @@ func (cfg *apiConfig) handlerRegister(w http.ResponseWriter, r *http.Request) {
 		CreatedAt time.Time `json:"created_at"`
 		UpdatedAt time.Time `json:"updated_at"`
 		Balance   int       `json:"balance"`
+		Token     string    `json:"token"`
 	}
 	reqUser := CredentialsRequestParams{}
 
@@ -54,11 +55,18 @@ func (cfg *apiConfig) handlerRegister(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	accessToken, err := auth.MakeJWT(dbUser.ID, cfg.secret, time.Hour)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Couldn't create JWT for user", err)
+		return
+	}
+
 	// send response
 	respondWithJSON(w, http.StatusCreated, registerResponseParams{
 		Username:  dbUser.Username,
 		CreatedAt: dbUser.CreatedAt,
 		UpdatedAt: dbUser.UpdatedAt,
 		Balance:   int(dbUser.Balance),
+		Token:     accessToken,
 	})
 }
