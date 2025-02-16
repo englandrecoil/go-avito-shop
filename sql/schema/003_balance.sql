@@ -1,7 +1,7 @@
 -- +goose Up
 ALTER TABLE users
-ADD COLUMN balance INT NOT NULL DEFAULT 1000;
+ADD COLUMN balance INT NOT NULL DEFAULT 1000 CHECK(BALANCE>=0);
 
 -- +goose Down
-ALTER TABLES users
+ALTER TABLE users
 DROP COLUMN balance;

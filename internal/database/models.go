@@ -16,6 +16,14 @@ type Item struct {
 	Price int32
 }
 
+type Transaction struct {
+	ID         uuid.UUID
+	SenderID   uuid.UUID
+	ReceiverID uuid.UUID
+	Amount     int32
+	CreatedAt  time.Time
+}
+
 type User struct {
 	ID             uuid.UUID
 	CreatedAt      time.Time

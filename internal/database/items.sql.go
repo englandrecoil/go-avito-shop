@@ -23,19 +23,22 @@ func (q *Queries) GetItemByName(ctx context.Context, name string) (Item, error) 
 	return i, err
 }
 
-const purchaseItemByID = `-- name: PurchaseItemByID :exec
-WITH updated_balance AS (
+const purchaseItemByID = `-- name: PurchaseItemByID :one
+WITH item_price AS (
+    SELECT price FROM items WHERE id = $2
+),
+updated_balance AS (
     UPDATE users
-    SET balance = balance - (SELECT price FROM items WHERE id = $2)
-    WHERE id = $1
-    AND balance >= (SELECT price FROM items WHERE id = $2)
+    SET balance = balance - (SELECT price FROM item_price)
+    WHERE id = $1 AND balance >= (SELECT price FROM item_price)
     RETURNING id
 )
 INSERT INTO users_items (id, user_id, item_id, quantity)
-VALUES (gen_random_uuid(), $1, $2, 1)
+SELECT gen_random_uuid(), $1, $2, 1
+FROM updated_balance
 ON CONFLICT (user_id, item_id) 
 DO UPDATE SET quantity = users_items.quantity + EXCLUDED.quantity
-WHERE EXISTS (SELECT 1 FROM updated_balance)
+RETURNING id, user_id, item_id, quantity
 `
 
 type PurchaseItemByIDParams struct {
@@ -43,44 +46,14 @@ type PurchaseItemByIDParams struct {
 	ItemID uuid.UUID
 }
 
-func (q *Queries) PurchaseItemByID(ctx context.Context, arg PurchaseItemByIDParams) error {
-	_, err := q.db.ExecContext(ctx, purchaseItemByID, arg.UserID, arg.ItemID)
-	return err
-}
-
-const updateBalance = `-- name: UpdateBalance :exec
-UPDATE users
-SET balance = balance - (SELECT price FROM items WHERE items.id = $2)
-WHERE users.id = $1
-`
-
-type UpdateBalanceParams struct {
-	ID   uuid.UUID
-	ID_2 uuid.UUID
-}
-
-func (q *Queries) UpdateBalance(ctx context.Context, arg UpdateBalanceParams) error {
-	_, err := q.db.ExecContext(ctx, updateBalance, arg.ID, arg.ID_2)
-	return err
-}
-
-const updateInventory = `-- name: UpdateInventory :exec
-INSERT INTO users_items(user_id, item_id, quantity)
-VALUES (
-    $1,
-    $2,
-    1
-)
-ON CONFLICT(user_id, item_id)
-DO UPDATE SET quantity = users_items.quantity + 1
-`
-
-type UpdateInventoryParams struct {
-	UserID uuid.UUID
-	ItemID uuid.UUID
-}
-
-func (q *Queries) UpdateInventory(ctx context.Context, arg UpdateInventoryParams) error {
-	_, err := q.db.ExecContext(ctx, updateInventory, arg.UserID, arg.ItemID)
-	return err
+func (q *Queries) PurchaseItemByID(ctx context.Context, arg PurchaseItemByIDParams) (UsersItem, error) {
+	row := q.db.QueryRowContext(ctx, purchaseItemByID, arg.UserID, arg.ItemID)
+	var i UsersItem
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.ItemID,
+		&i.Quantity,
+	)
+	return i, err
 }

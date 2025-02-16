@@ -36,7 +36,7 @@ func (cfg *apiConfig) handlerBuyItem(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// process transaction
-	err = cfg.db.PurchaseItemByID(r.Context(), database.PurchaseItemByIDParams{
+	_, err = cfg.db.PurchaseItemByID(r.Context(), database.PurchaseItemByIDParams{
 		UserID: jwtID,
 		ItemID: item.ID,
 	})

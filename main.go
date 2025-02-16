@@ -14,6 +14,7 @@ import (
 type apiConfig struct {
 	db     *database.Queries
 	secret string
+	conn   *sql.DB
 }
 
 func main() {
@@ -39,6 +40,7 @@ func main() {
 	apiCfg := apiConfig{
 		db:     dbQueries,
 		secret: secret,
+		conn:   dbConn,
 	}
 
 	mux := http.NewServeMux()
@@ -48,6 +50,7 @@ func main() {
 	mux.HandleFunc("POST /api/reg", apiCfg.handlerRegister)
 	mux.HandleFunc("POST /api/auth", apiCfg.handlerAuth)
 	mux.HandleFunc("GET /api/buy/{item}", apiCfg.handlerBuyItem)
+	mux.HandleFunc("POST /api/sendCoin", apiCfg.handlerSendCoins)
 
 	server := &http.Server{
 		Addr:    ":" + port,
