@@ -10,15 +10,11 @@ import (
 )
 
 func (cfg *apiConfig) handlerAuth(w http.ResponseWriter, r *http.Request) {
-	type authRequestParams struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
-	}
 	type authResponseParams struct {
 		Token string `json:"token"`
 	}
 
-	authUser := authRequestParams{}
+	authUser := CredentialsRequestParams{}
 
 	// get user's request params
 	decoder := json.NewDecoder(r.Body)
