@@ -1,0 +1,50 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: "database"
+    ports:
+      - "5432:5432"
+    env_file:
+      - .env
+    healthcheck:
+      test: [ "CMD-SHELL", "sh -c 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}'" ]
+      interval: 10s
+      timeout: 1s
+      retries: 5
+    networks:
+      - internal
+    volumes:
+      - database_postgres:/var/lib/postgresql/data
+
+
+  migrations:
+    image: ghcr.io/kukymbr/goose-docker:latest
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - GOOSE_DRIVER=postgres
+      - GOOSE_DBSTRING=host=db port=5432 user=${POSTGRES_USER} password=${POSTGRES_PASSWORD} dbname=${POSTGRES_DB} sslmode=disable
+      - GOOSE_VERBOSE=true
+    volumes:
+      - ./sql/schema:/migrations
+    networks:
+      - internal
+  
+  server:
+    build: .
+    container_name: "shop-service"
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - internal
+
+volumes:
+  database_postgres:
+
+networks:
+  internal:
+    driver: bridge

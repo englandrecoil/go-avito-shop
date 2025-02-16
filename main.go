@@ -18,7 +18,9 @@ type apiConfig struct {
 }
 
 func main() {
-	godotenv.Load(".env")
+	if err := godotenv.Load(".env"); err != nil {
+		log.Fatal("`.env` file must be created")
+	}
 	const port = "8080"
 
 	secret := os.Getenv("SECRET")
@@ -44,9 +46,6 @@ func main() {
 	}
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /api/healthz", handlerReadiness)
-	mux.HandleFunc("POST /api/reset", apiCfg.handlerReset)
-
 	mux.HandleFunc("POST /api/reg", apiCfg.handlerRegister)
 	mux.HandleFunc("POST /api/auth", apiCfg.handlerAuth)
 	mux.HandleFunc("POST /api/sendCoin", apiCfg.handlerSendCoins)
@@ -60,12 +59,5 @@ func main() {
 	}
 	log.Printf("Serving on port: %s\n", port)
 	log.Fatal(server.ListenAndServe())
-
-}
-
-func handlerReadiness(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Content-Type", "text/plain; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(http.StatusText(http.StatusOK)))
 
 }

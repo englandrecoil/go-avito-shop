@@ -7,24 +7,25 @@ import (
 	"github.com/englandrecoil/go-avito-shop/internal/auth"
 )
 
+type infoRequestParams struct {
+	Coins     int `json:"coins"`
+	Inventory []struct {
+		Type     string `json:"type"`
+		Quantity int    `json:"quantity"`
+	} `json:"inventory"`
+	CoinHistory struct {
+		Received []struct {
+			FromUser string `json:"fromUser"`
+			Amount   int    `json:"amount"`
+		} `json:"received"`
+		Sent []struct {
+			ToUser string `json:"toUser"`
+			Amount int    `json:"amount"`
+		} `json:"sent"`
+	} `json:"coinHistory"`
+}
+
 func (cfg *apiConfig) handlerInfo(w http.ResponseWriter, r *http.Request) {
-	type infoRequestParams struct {
-		Coins     int `json:"coins"`
-		Inventory []struct {
-			Type     string `json:"type"`
-			Quantity int    `json:"quantity"`
-		} `json:"inventory"`
-		CoinHistory struct {
-			Received []struct {
-				FromUser string `json:"fromUser"`
-				Amount   int    `json:"amount"`
-			} `json:"received"`
-			Sent []struct {
-				ToUser string `json:"toUser"`
-				Amount int    `json:"amount"`
-			} `json:"sent"`
-		} `json:"coinHistory"`
-	}
 	infoUser := infoRequestParams{}
 
 	token, err := auth.GetBearerToken(r.Header)

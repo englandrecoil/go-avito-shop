@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -11,11 +12,12 @@ import (
 	"github.com/google/uuid"
 )
 
+type sendCoinsRequestParams struct {
+	ToUser string `json:"toUser"`
+	Amount int    `json:"amount"`
+}
+
 func (cfg *apiConfig) handlerSendCoins(w http.ResponseWriter, r *http.Request) {
-	type sendCoinsRequestParams struct {
-		ToUser string `json:"toUser"`
-		Amount int    `json:"amount"`
-	}
 	transactionInfo := sendCoinsRequestParams{}
 
 	token, err := auth.GetBearerToken(r.Header)
@@ -34,6 +36,9 @@ func (cfg *apiConfig) handlerSendCoins(w http.ResponseWriter, r *http.Request) {
 	if err := decoder.Decode(&transactionInfo); err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Couldn't decode request body", err)
 		return
+	}
+	if transactionInfo.Amount < 0 {
+		respondWithError(w, http.StatusBadRequest, "Wrong amount of coins provided", errors.New("invalid amount parameter"))
 	}
 
 	dbUser, err := cfg.db.GetUserByUsername(r.Context(), transactionInfo.ToUser)
@@ -56,13 +61,13 @@ func (cfg *apiConfig) handlerSendCoins(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, nil)
 }
 
-func (apiCfg *apiConfig) transferCoins(ctx context.Context, senderID, receiverID uuid.UUID, amount int) error {
-	tx, err := apiCfg.conn.BeginTx(ctx, nil)
+func (cfg *apiConfig) transferCoins(ctx context.Context, senderID, receiverID uuid.UUID, amount int) error {
+	tx, err := cfg.conn.BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("error beginning transaction: %w", err)
 	}
 
-	qtx := apiCfg.db.WithTx(tx)
+	qtx := cfg.db.WithTx(tx)
 
 	err = qtx.DeductBalance(ctx, database.DeductBalanceParams{
 		ID:      senderID,
