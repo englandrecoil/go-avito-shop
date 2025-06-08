@@ -1,4 +1,5 @@
 # go-avito-shop
+[![ru](https://img.shields.io/badge/lang-ru-blue?style=flat)](https://github.com/englandrecoil/go-avito-shop/blob/master/README.md)
 
 **Avito Shop API** is a RESTful web service written in Go. This internal merchandise store allows users to:
 - Purchase items using coins  
