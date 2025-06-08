@@ -1,5 +1,5 @@
 # go-avito-shop
-[![ru](https://img.shields.io/badge/lang-ru-blue?style=flat)](https://github.com/englandrecoil/go-avito-shop/blob/master/README.ru.md)
+[![ru](https://img.shields.io/badge/lang-ru-blue?style=flat)](https://github.com/englandrecoil/go-avito-shop/blob/master/README.md)
 [![en](https://img.shields.io/badge/lang-en-green?style=flat)](https://github.com/englandrecoil/go-avito-shop/blob/master/README.en.md)
 
 **Avito Shop API** - RESTful веб-сервис, написанный на языке Go. Данный сервис представляет из себя внутренний магазин мерча, который позволяет:
